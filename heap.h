@@ -2,7 +2,8 @@
 #define HEAP_H
 #include <functional>
 #include <stdexcept>
-
+#include <vector>
+#include <iostream>
 template <typename T, typename PComparator = std::less<T> >
 class Heap
 {
@@ -59,16 +60,31 @@ public:
    */
   size_t size() const;
 
+  void print() const;
+
+  void heapify(size_t index);
+
+  size_t findPrioirty(size_t parent_index, size_t len) const;
+
 private:
   /// Add whatever helper functions and data members you need below
-
-
-
-
+  std::vector<T> data_;
+  int m_;
+  PComparator comp_;
 };
 
 // Add implementation of member functions here
+template <typename T, typename PComparator>
+Heap<T,PComparator>::Heap(int m, PComparator c){
+  m_ = m;
+  comp_ = c;
+}
 
+
+template <typename T, typename PComparator>
+Heap<T,PComparator>::~Heap(){
+  ;
+}
 
 // We will start top() for you to handle the case of 
 // calling top on an empty heap
@@ -81,14 +97,11 @@ T const & Heap<T,PComparator>::top() const
     // ================================
     // throw the appropriate exception
     // ================================
-
-
+    throw std::underflow_error("Heap is empty");
   }
   // If we get here we know the heap has at least 1 item
   // Add code to return the top element
-
-
-
+  return data_[0];
 }
 
 
@@ -96,20 +109,92 @@ T const & Heap<T,PComparator>::top() const
 // calling top on an empty heap
 template <typename T, typename PComparator>
 void Heap<T,PComparator>::pop()
-{
+{ 
   if(empty()){
     // ================================
     // throw the appropriate exception
     // ================================
-
-
+    throw std::underflow_error("Heap is empty");
   }
-
-
-
+  std::swap(data_[0], data_[data_.size()-1]);
+  data_.pop_back();
+  heapify(0);
 }
 
 
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::heapify(size_t index){
+  size_t len = m_;
+  T& current_item = data_[index];
+  std::size_t left_index = index * m_ +1;
+  if(left_index >= data_.size()){
+    return;
+  }
+  //check if it's out of boundery
+  for(int i = 0 ; i < m_; i++){
+    if(left_index+i >= data_.size()){
+      len = i;
+      break;    
+    }
+  }
+  std::size_t child_index = findPrioirty(index, len);
+  if(comp_(data_[child_index], current_item)){
+    std::swap(data_[child_index], current_item);
+    heapify(child_index);
+  }
+}
+
+
+template <typename T, typename PComparator>
+std::size_t Heap<T,PComparator>::findPrioirty(size_t parent_index, size_t len) const{
+  std::size_t temp = parent_index*m_ + 1;
+  std::size_t priority_index = temp;
+  for(size_t i = 1; i < len; i++){
+    if(comp_(data_[temp+i],data_[priority_index])){
+      // std::cout << "data1: " << data_[temp+i] << std::endl;
+      // std::cout << "data2: " << data_[priority_index] << std::endl;
+      priority_index = temp+i;
+    }
+  }
+  // std::cout << "the priority value is: " << data_[priority_index] << std::endl;
+  return priority_index;
+}
+
+
+
+
+template <typename T, typename PComparator>
+size_t Heap<T,PComparator>::size() const{
+  return data_.size();
+}
+
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::push(const T& item)
+{
+  data_.push_back(item);
+  std::size_t index = data_.size() - 1;
+  while (index != 0) {
+      std::size_t parent_index = (index - 1) / m_;
+      T& current = data_[index];
+      T& parent = data_[parent_index];
+      if (comp_(parent, current) || current == parent ) {
+          break;
+      }
+      std::swap(current, parent);
+      index = parent_index;
+  }
+}
+template <typename T, typename PComparator>
+bool Heap<T,PComparator>::empty() const{
+  return data_.empty();
+}
+template <typename T, typename PComparator>
+void  Heap<T,PComparator>::print() const{
+  for(std::size_t i=0; i < data_.size(); i++){
+    std::cout << data_[i] << " ";
+  }
+  std::cout << std::endl;
+}
 
 #endif
 
